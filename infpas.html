@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>StudyFlix - Guia PAS</title>
+ <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" />
+ <style>
+ body {
+ margin: 0;
+ background-color: #141414;
+ color: #fff;
+ font-family: Arial, sans-serif;
+ }
+
+ header {
+ background: linear-gradient(to bottom, #e44aff5d, transparent);
+ padding: 15px 20px;
+ display: flex;
+ justify-content: space-between; 
+ align-items: center;
+ height: 60px;
+ }
+
+ #logo {
+ padding-top: 15px;
+ height: 100px;
+ width: 100px;
+ cursor: pointer;
+ flex-shrink: 0;
+ }
+ 
+/* Estilo para a Barra de Navegação/Status */
+/* Removido o nav-status para manter o estilo mais simples do seu código ajustado */
+
+ main {
+ padding: 20px;
+ max-width: 900px;
+ margin: auto;
+ }
+
+ section {
+ background-color: #222;
+ padding: 25px;
+ border-radius: 8px;
+ margin-bottom: 30px;
+ }
+
+ h2 {
+ border-bottom: 2px solid #e44aff5d;
+ padding-bottom: 8px;
+ margin-bottom: 15px;
+ color: #e44aff;
+ }
+
+ p {
+ font-size: 16px;
+ line-height: 1.6;
+ margin-bottom: 15px;
+ }
+
+ ul {
+ padding-left: 20px;
+ margin-bottom: 15px;
+ }
+
+ ul li {
+ margin-bottom: 10px;
+}
+
+ /* Botão para o Vídeo PAS */
+.video-cta-button {
+ display: inline-block;
+ background-color: #9b59b6; /* Cor roxa do seu layout original */
+ color: white;
+ padding: 12px 25px;
+ margin-top: 15px;
+ border-radius: 4px;
+ text-decoration: none;
+ font-weight: bold;
+ transition: background-color 0.3s;
+}
+
+ .video-cta-button:hover {
+ background-color: #8e44ad;
+ }
+
+
+ @media (max-width: 600px) {
+ header {
+ flex-direction: column;
+ height: auto;
+ padding-bottom: 15px;
+ }
+ }
+ </style>
+</head>
+<body>
+
+<header>
+ <img id="logo" src="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" alt="Logo StudyFlix" />
+</header>
+
+<main>
+    <section id="welcome-message">
+ <h2>📜 Guia de Estudo para o PAS (Prova Seriada)</h2>
+ <p>
+ O Programa de Avaliação Seriada (PAS) é um formato de vestibular que acontece ao longo dos anos do Ensino Médio. Nesta seção, você entende como funciona e como o StudyFlix ajuda a manter a constância nos estudos.
+ </p>
+ <a href="asspas.html" class="video-cta-button">
+ ▶️ ASSISTIR: Entenda a estrutura e as etapas do PAS
+ </a>
+ </section>
+
+ <section id="estrutura-pas">
+ <h2>Estrutura do PAS</h2>
+ <p>
+ O PAS é dividido em <i>três etapas</i> (Subprogramas I, II e III), aplicadas em anos consecutivos:
+ </p>
+ <ul>
+ <li>
+ <strong>Subprograma I:</strong> Conteúdo da 1ª série do Ensino Médio.
+ </li>
+ <li>
+ <strong>Subprograma II:</strong> Conteúdo da 2ª série do Ensino Médio.
+ </li>
+ <li>
+ <strong>Subprograma III:</strong> Conteúdo da 3ª série do Ensino Médio e a escolha do curso.
+ </li>
+ </ul>
+ <p>
+ A pontuação final é a soma dos resultados das três etapas, exigindo <i>consistência</i> e <i>revisão contínua</i> em cada ano.
+ </p>
+</section>
+ 
+ <section id="studyflix-ajuda-pas">
+ <h2>Preparação Seriada com o StudyFlix</h2>
+ <p>
+ Para o PAS, a palavra-chave é <i>memória de longo prazo</i>. O StudyFlix ajuda você a manter os conteúdos frescos a cada ano:
+</p>
+ <ul>
+<li>
+<strong>Módulos Organizados:</strong> Use as categorias de estudo para revisar o conteúdo do ano anterior (Subprogramas I e II) antes de cada nova etapa.
+ </li>
+ <li>
+ <strong>Revisão por Quiz:</strong> Utilize o modo <i>Quiz Competitivo</i> para testar rapidamente grandes blocos de conteúdo antigo, identificando pontos fracos de forma eficiente.
+ </li>
+ <li>
+ <strong>Acompanhamento:</strong> Monitore seu desempenho ao longo dos anos para garantir que o conteúdo da 1ª e 2ª séries não seja esquecido antes da Etapa III.
+ </li>
+ </ul>
+ </section>
+
+</main>
+
+<script>
+ // Clique na logo → redireciona para a página principal study.html
+ document.getElementById("logo").addEventListener("click", () => {
+ window.location.href = "PAS.html";
+ });
+</script>
+
+</body>
+</html>

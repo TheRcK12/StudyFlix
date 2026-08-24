@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Studyflix - Literatura PAS</title>
+  <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" />
+  <style>
+    body {
+      margin: 0;
+      background-color: #141414;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Logo no canto superior esquerdo */
+    header img.logo {
+      position: absolute;
+      left: 0;
+      height: 50px;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: #7100bc;
+      border: none;
+      color: white;
+      padding: 12px 25px;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #8e2de2;
+    }
+
+    button.active {
+      background-color: #4a007c;
+      cursor: default;
+    }
+
+    #subject-bar {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    #subject-bar button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #subject-bar button:hover {
+      background-color: #555;
+    }
+
+    #subject-bar button.active {
+      background-color: #4a007c;
+      cursor: default;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex-grow: 1;
+    }
+
+    .sidebar {
+      min-width: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+      background-color: #222;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #7100bc;
+      padding-bottom: 5px;
+    }
+
+    .topic-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .topic-list li {
+      margin-bottom: 10px;
+    }
+
+    .topic-list button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #ccc;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .topic-list button:hover {
+      background-color: #7100bc;
+      color: white;
+    }
+
+    .topic-list button.active {
+      background-color: #4a007c;
+      color: white;
+      cursor: default;
+    }
+
+    .videos-area {
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .videos-area h2 {
+      margin-bottom: 15px;
+      font-size: 1.8rem;
+      border-bottom: 3px solid #7100bc;
+      padding-bottom: 5px;
+    }
+
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .video-card {
+      background-color: #222;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #7100bc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .video-card iframe {
+      width: 100%;
+      height: 180px;
+      border: none;
+    }
+
+    .video-info {
+      padding: 10px;
+      font-weight: 600;
+      text-align: center;
+      color: #eee;
+    }
+
+    .btn-questoes {
+      margin-top: 20px;
+      background-color: #7100bc;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-questoes:hover {
+      background-color: #8e2de2;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .sidebar {
+        max-height: none;
+        width: 100%;
+      }
+
+      .videos-area {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" alt="Logo Studyflix" class="logo" id="logo" />
+    <button id="btn-pas" class="active">PAS</button>
+  </header>
+
+  <nav id="subject-bar" aria-label="Seleção de Matéria (PAS 1, 2, 3)">
+  </nav>
+
+  <div class="container">
+    <aside class="sidebar" aria-label="Seleção de tópicos">
+      <h2 id="sidebar-title">Tópicos</h2>
+      <ul class="topic-list" id="topic-list">
+      </ul>
+      <button class="btn-questoes" id="btn-questoes">Questões</button>
+    </aside>
+
+    <section class="videos-area">
+      <h2 id="topic-title">Literatura</h2>
+      <div class="videos-grid" id="videos-grid">
+      </div>
+      <a href="#" target="_blank" rel="noopener" class="btn-obras" id="btn-obras" aria-label="Ver obras" style="display: block; text-align: center; margin-top: 20px; color: #7100bc; font-weight: 700; text-decoration: none;">Ver obras</a>
+    </section>
+  </div>
+
+  <script>
+    // Redireciona ao clicar na logo
+    document.getElementById('logo').addEventListener('click', () => {
+      window.location.href = 'page.html';
+    });
+
+    // Dados de Literatura para o PAS (baseado nas matrizes curriculares)
+    const pasData = {
+      pas1: {
+        obrasUrl: "https://passeandounb.com/obras-do-pas-1/",
+        topics: {
+          // Tópicos do 1º ano - Era Clássica e Romantismo
+          "Trovadorismo ao Classicismo": [
+            { title: "Trovadorismo e Humanismo (Contexto e Gêneros)", url: "https://www.youtube.com/embed/A1w_1vA2wB3" },
+            { title: "Classicismo: Camões e a Épica de 'Os Lusíadas'", url: "https://www.youtube.com/embed/B2x_2vB3xC4" }
+          ],
+          "Barroco e Arcadismo": [
+            { title: "Barroco: Gregório de Matos e o Cultismo/Conceptismo", url: "https://www.youtube.com/embed/C3y_3vC4yD5" },
+            { title: "Arcadismo: Cláudio Manoel da Costa e o 'fugere urbem'", url: "https://www.youtube.com/embed/D4z_4vD5zE6" }
+          ],
+          "Romantismo (Gerações)": [
+            { title: "Romantismo no Brasil (1ª Geração - Indianista)", url: "https://www.youtube.com/embed/E5a_5vE6aF7" },
+            { title: "Romantismo (2ª Geração - Ultrarromantismo/Mal do Século)", url: "https://www.youtube.com/embed/F6b_6vF7bG8" }
+          ]
+        }
+      },
+      pas2: {
+        obrasUrl: "https://passeandounb.com/obras-do-pas-2/",
+        topics: {
+          // Tópicos do 2º ano - Realismo, Naturalismo, Parnasianismo e Simbolismo
+          "Realismo e Naturalismo": [
+            { title: "Realismo: Machado de Assis e a Análise Psicológica", url: "https://www.youtube.com/embed/G7c_7vG8cH9" },
+            { title: "Naturalismo: Aluísio Azevedo e o Determinismo", url: "https://www.youtube.com/embed/H8d_8vH9dI0" }
+          ],
+          "Parnasianismo e Simbolismo": [
+            { title: "Parnasianismo: Olavo Bilac e o 'Arte pela Arte'", url: "https://www.youtube.com/embed/I9e_9vI0eJ1" },
+            { title: "Simbolismo: Cruz e Sousa e a Musicalidade", url: "https://www.youtube.com/embed/J0f_0vJ1fK2" }
+          ],
+          "Pré-Modernismo": [
+            { title: "Euclides da Cunha e a Literatura de Denúncia", url: "https://www.youtube.com/embed/K1g_1vK2gL3" }
+          ]
+        }
+      },
+      pas3: {
+        obrasUrl: "https://passeandounb.com/obras-do-pas-3/",
+        topics: {
+          // Tópicos do 3º ano - Modernismo e Pós-Modernismo
+          "Modernismo (1ª Fase)": [
+            { title: "Semana de Arte Moderna e a Ruptura", url: "https://www.youtube.com/embed/L2h_2vL3hM4" },
+            { title: "Oswald de Andrade e o Movimento Antropofágico", url: "https://www.youtube.com/embed/M3i_3vM4iN5" }
+          ],
+          "Modernismo (2ª Fase - Prosa e Poesia)": [
+            { title: "Prosa Regionalista (Graciliano Ramos, Jorge Amado)", url: "https://www.youtube.com/embed/N4j_4vN5jO6" },
+            { title: "Poesia (Drummond, Vinicius de Moraes)", url: "https://www.youtube.com/embed/O5k_5vO6kP7" }
+          ],
+          "Modernismo (3ª Fase) e Pós-Modernismo": [
+            { title: "Guimarães Rosa e Clarice Lispector: Inovação e Interioridade", url: "https://www.youtube.com/embed/P6l_6vP7lQ8" }
+          ]
+        }
+      }
+    };
+
+    // DOM Elements
+    const btnPas = document.getElementById('btn-pas');
+    const subjectBar = document.getElementById('subject-bar');
+    const topicList = document.getElementById('topic-list');
+    const topicTitle = document.getElementById('topic-title');
+    const sidebarTitle = document.getElementById('sidebar-title');
+    const videosGrid = document.getElementById('videos-grid');
+    const btnObras = document.getElementById('btn-obras');
+    const btnQuestoes = document.getElementById('btn-questoes');
+
+    // State
+    let currentPas = 'pas1'; // 'pas1', 'pas2', 'pas3'
+    let currentTopic = null;
+
+    // Clear active buttons helper
+    function clearActiveButtons(container) {
+      container.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    }
+
+    // Clear topics and videos
+    function clearTopics() {
+      topicList.innerHTML = '';
+    }
+
+    function clearVideos() {
+      videosGrid.innerHTML = '';
+    }
+
+    // Load subject bar (PAS 1, 2, 3 buttons)
+    function loadSubjectBar() {
+      subjectBar.innerHTML = '';
+      // Sempre carrega os botões PAS 1, 2, 3
+      ['pas1', 'pas2', 'pas3'].forEach(pas => {
+        const btn = document.createElement('button');
+        btn.textContent = pas.toUpperCase();
+        btn.dataset.pas = pas;
+        if (pas === currentPas) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          if (currentPas === pas) return;
+          currentPas = pas;
+          currentTopic = null;
+          clearActiveButtons(subjectBar);
+          btn.classList.add('active');
+          loadTopics();
+        });
+        subjectBar.appendChild(btn);
+      });
+    }
+
+    // Load PAS topics
+    function loadTopics() { // Função unificada para carregar tópicos PAS
+      sidebarTitle.textContent = `Tópicos - ${currentPas.toUpperCase()}`;
+      clearTopics();
+      clearVideos();
+      topicTitle.textContent = 'Selecione um tópico de Literatura';
+      btnObras.href = pasData[currentPas].obrasUrl;
+      btnObras.style.display = 'block';
+      btnObras.textContent = `Ver todas as obras do ${currentPas.toUpperCase()}`; // Texto atualizado
+
+      const topics = pasData[currentPas].topics;
+      Object.keys(topics).forEach(topicName => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.textContent = topicName;
+        btn.addEventListener('click', () => {
+          if (currentTopic === topicName) return;
+          currentTopic = topicName;
+          clearActiveButtons(topicList);
+          btn.classList.add('active');
+          loadVideos(topicName);
+        });
+        li.appendChild(btn);
+        topicList.appendChild(li);
+      });
+    }
+
+    // Load videos PAS
+    function loadVideos(topicName) { // Função unificada para carregar vídeos PAS
+      topicTitle.textContent = topicName;
+      clearVideos();
+      const videos = pasData[currentPas].topics[topicName];
+      videos.forEach(video => {
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+          <iframe src="${video.url}" allowfullscreen></iframe>
+          <div class="video-info">${video.title}</div>
+        `;
+        videosGrid.appendChild(card);
+      });
+    }
+
+    // Initialize page
+    function init() {
+      currentPas = 'pas1';
+      currentTopic = null;
+
+      btnPas.classList.add('active');
+      loadSubjectBar();
+      loadTopics();
+    }
+
+    // Questões button
+    btnQuestoes.addEventListener('click', () => {
+      // Abre link genérico de questões, ajuste se houver link específico para o PAS.
+      window.open('questoese.html', '_blank');
+    });
+
+    // Inicializa
+    init();
+  </script>
+</body>
+
+</html>

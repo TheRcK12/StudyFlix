@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StudyFlix - Painel de Recursos</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #141414;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background: linear-gradient(to bottom, #e44aff5d, transparent);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            height: 60px;
+        }
+
+        #logo {
+            padding-top: 15px;
+            height: 100px;
+            width: 100px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        /* Estilo para a Barra de Navegação/Status */
+        #nav-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 16px;
+        }
+        
+        #nav-status a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        #nav-status a:hover {
+            background-color: #333;
+        }
+        
+        #nav-status .highlight {
+            background-color: #e44aff;
+            color: #141414;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        section {
+            background-color: #222;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            border-bottom: 2px solid #e44aff5d;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            color: #e44aff;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        ul li {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                height: auto;
+                padding-bottom: 15px;
+            }
+            #nav-status {
+                margin-top: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img id="logo" src="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" alt="Logo StudyFlix" />
+    
+    <nav id="nav-status">
+        <a href="study.html" class="highlight">Início</a>
+        <a href="questoese.html">Iniciar Quiz</a>
+        <a href="logout.php">Sair</a>
+    </nav>
+</header>
+
+<main>
+    <section id="welcome-message">
+        <h2>👋 Bem-vindo(a) ao StudyFlix!</h2>
+        <p>
+            Esta é a sua central de informações. Aqui você pode entender a estrutura da plataforma e como aproveitar ao máximo os recursos disponíveis.
+        </p>
+    </section>
+
+    <section id="sobre-plataforma">
+        <h2>📚 Sobre a Plataforma</h2>
+        <p>
+            O StudyFlix foi desenvolvido para tornar o aprendizado mais dinâmico e competitivo. Nosso conteúdo é dividido em módulos de conhecimento, cada um focando em tópicos essenciais para a sua formação.
+        </p>
+        <p>
+            Nossa missão é simples: <i>Transformar seu estudo em uma experiência de streaming</i>, onde o acesso à informação é rápido e o progresso é recompensado.
+        </p>
+    </section>
+    
+    <section id="recursos">
+        <h2>✨ Recursos Principais</h2>
+        <p>
+            Como um usuário logado, você tem acesso aos seguintes recursos integrados:
+        </p>
+        <ul>
+            <li>
+                <strong>Módulos de Estudo:</strong> Conteúdo organizado por temas, como História, Matemática, Ciências e Tecnologia.
+            </li>
+            <li>
+                <strong>Sistema de Quizzes Competitivos:</strong> Teste seu conhecimento em sessões rápidas de 10 perguntas. Sua pontuação é registrada <i>imediatamente</i> a cada resposta correta.
+            </li>
+            <li>
+                <strong>Ranking Global:</strong> Acompanhe sua performance em tempo real. Sua pontuação é somada e seu nome de usuário (ou nome completo) aparece no topo dos melhores.
+            </li>
+            <li>
+                <strong>Acompanhamento de Desempenho:</strong> Suas tentativas totais e acertos são armazenados, permitindo que você acompanhe sua evolução contínua.
+            </li>
+        </ul>
+    </section>
+    
+    <section id="como-funciona">
+        <h2>▶️ Como Usar o StudyFlix</h2>
+        <ol>
+            <li>
+                <strong>Acesse o Quiz:</strong> Clique em 'Iniciar Quiz' no menu superior.
+            </li>
+            <li>
+                <strong>Escolha a Área:</strong> Selecione o módulo de conhecimento que deseja testar (ex: Natureza, História).
+            </li>
+            <li>
+                <strong>Responda:</strong> Complete as 10 questões da sessão.
+            </li>
+            <li>
+                <strong>Pontuação:</strong> A cada acerto, sua pontuação no ranking é atualizada. Você não precisa fazer nada, o sistema salva automaticamente!
+            </li>
+            <li>
+                <strong>Verifique o Ranking:</strong> Acompanhe o ranking na aba de pontuações para ver o seu progresso e o dos demais usuários.
+            </li>
+        </ol>
+    </section>
+
+</main>
+
+<script>
+    // Clique na logo → redireciona para esta mesma página, o painel principal
+    document.getElementById("logo").addEventListener("click", () => {
+        window.location.href = "page.html";
+    });
+    
+    // Simples JS para garantir que o link "Iniciar Quiz" funcione
+    document.querySelector('a[href="questoese.html"]').addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "questoese.html";
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Questões - Studyflix</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" />
+
+    <style>
+        /* [Seu CSS está correto e foi omitido para brevidade] */
+        /* ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #000000;
+            color: #fff;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        #imagem {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+            opacity: 0.1;
+            z-index: -1;
+            filter: brightness(0.3);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        header {
+            background-color: #141414;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .logo {
+            height: 45px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            user-select: none;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: color 0.3s ease;
+            padding: 8px 0;
+            border-bottom: 3px solid transparent;
+            text-decoration: none;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #9b59b6;
+            border-bottom: 3px solid #9b59b6;
+        }
+
+        main {
+            margin-top: 90px;
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px 40px;
+            width: 100%;
+        }
+
+        .section-title {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-weight: 900;
+            font-size: 2.8rem;
+            color: #fff;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(155, 89, 182, 0.8);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 14px 32px;
+            background-color: #9b59b6;
+            color: white;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(155, 89, 182, 0.7);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            border: none;
+        }
+
+        .button:hover {
+            background-color: #8e44ad;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.9);
+        }
+
+        footer {
+            background: #141414;
+            padding: 1.5rem 20px;
+            text-align: center;
+            border-top: 2px solid #9b59b6;
+            margin-top: auto;
+            color: #bbb;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .pp,
+        .ppp {
+            width: 48px;
+            height: 48px;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .ppp {
+            width: 52px;
+            height: 52px;
+        }
+
+        .pp:hover,
+        .ppp:hover {
+            opacity: 1;
+            filter: drop-shadow(0 0 5px #9b59b6);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: color 0.3s, border-bottom 0.3s;
+            border-bottom: 4px solid transparent;
+        }
+
+        .tab-button.active {
+            color: #fff;
+            border-bottom: 4px solid #9b59b6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #quiz-start-content {
+            background: #181818;
+            padding: 30px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        #quiz-start-content label {
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        #area-select {
+            padding: 10px;
+            font-size: 1rem;
+            background: #333;
+            color: #fff;
+            border: 2px solid #9b59b6;
+            border-radius: 4px;
+            margin-right: 20px;
+        }
+
+        #quiz-content-container {
+            background: #181818;
+            padding: 30px;
+            border-radius: 6px;
+            box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5);
+        }
+
+        #question-text {
+            font-size: 1.3rem;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        #options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-button {
+            background-color: #333;
+            border: 2px solid #555;
+            color: #fff;
+            width: 100%;
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .option-button:hover:not(:disabled) {
+            background-color: #444;
+            border-color: #9b59b6;
+        }
+
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-button.correct {
+            background-color: #27ae60;
+            border-color: #2ecc71;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #c0392b;
+            border-color: #e74c3c;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        #quiz-feedback {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #feedback-message {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        #feedback-message.correct {
+            color: #2ecc71;
+        }
+
+        #feedback-message.incorrect {
+            color: #e74c3c;
+        }
+
+        #next-question-btn {
+            display: none;
+        }
+
+        #ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #ranking-table th,
+        #ranking-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        #ranking-table th {
+            background-color: #1f1f1f;
+            color: #9b59b6;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        #ranking-table tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        #ranking-table tr:hover {
+            background-color: #2c2c2c;
+        }
+
+        .loader {
+            border: 8px solid #333;
+            border-top: 8px solid #9b59b6;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img class="logo" src="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" alt="Logo Studyflix"
+            onclick="window.location.href='page.html'" />
+        <nav>
+            <a href="PAS.html" class="nav-link">PAS</a>
+            <a href="ENEM.html" class="nav-link">ENEM</a>
+        </nav>
+    </header>
+
+    <img id="imagem" src="https://i.ibb.co/nqG7kvKS/Whats-App-Image-2025-04-10-at-19-33-18.jpg" alt="Fundo" />
+
+    <main>
+        <h1 class="section-title">Central de Questões</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="quiz-start">Praticar</button>
+            <button class="tab-button" data-tab="ranking">Ranking Global</button>
+        </div>
+
+        <div id="quiz-start-content" class="tab-content active">
+            <h2>Selecione uma área para começar</h2>
+            <br>
+            <form id="start-quiz-form">
+                <label for="area-select">Matéria:</label>
+                <select id="area-select">
+                    <option value="Natureza">Ciências da Natureza</option>
+                    <option value="Humanas">Ciências Humanas</option>
+                    <option value="Matematica">Matemática</option>
+                    <option value="Linguagens">Linguagens</option>
+                </select>
+                <button type="submit" class="button">Começar</button>
+            </form>
+        </div>
+
+        <div id="quiz-content-container" class="tab-content">
+            <div id="quiz-loader" class="loader"></div>
+            <div id="quiz-area" style="display: none;">
+                <p id="question-text">Carregando...</p>
+                <ul id="options-list"></ul>
+                <div id="quiz-feedback">
+                    <span id="feedback-message"></span>
+                    <button id="next-question-btn" class="button">Próxima Questão</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="ranking-content" class="tab-content">
+            <div id="ranking-loader" class="loader" style="display: none;"></div>
+            <table id="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Pos.</th>
+                        <th>Usuário</th>
+                        <th>Acertos</th>
+                        <th>Tentativas</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <div class="social-links">
+            <a href="https://www.instagram.com/study.flixx?igsh=MW9jOXE0aTBhbGFxeg==" target="_blank">
+                <img class="pp"
+                    src="https://www.edigitalagency.com.au/wp-content/uploads/new-Instagram-logo-white-glyph.png"
+                    alt="Instagram" />
+            </a>
+            <a href="https://www.whatsapp.com/channel/0029Vb3wmHHHrDZXghjluA23" target="_blank">
+                <img class="ppp" src="https://i.ibb.co/N6W8q1KF/Whats-App-256.png" alt="WhatsApp" />
+            </a>
+        </div>
+        <p>© Studyflix, Inc.</p>
+    </footer>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // Configurações
+    const API_BASE_URL = 'api'; 
+    const QUESTION_LIMIT = 10; 
+
+    // --- VARIÁVEIS DE USUÁRIO (Não há mais fallback de convidado) ---
+    let currentUsername = null; 
+    let currentDisplayName = "Visitante (Faça Login)"; 
+    let isLoggedIn = false;
+    // ---
+
+    // VARIÁVEIS DE PONTUAÇÃO DA SESSÃO ATUAL
+    let sessionCorrectCount = 0;
+    let sessionAttemptedCount = 0;
+    // ---
+
+    // Elementos DOM
+    const tabs = document.querySelectorAll(".tab-button");
+    const tabContents = document.querySelectorAll(".tab-content");
+    const startForm = document.getElementById("start-quiz-form");
+    const areaSelect = document.getElementById("area-select");
+    const quizStartContent = document.getElementById("quiz-start-content");
+    const quizContentContainer = document.getElementById("quiz-content-container");
+    const quizLoader = document.getElementById("quiz-loader");
+    const quizArea = document.getElementById("quiz-area");
+    const sessionStatus = document.getElementById("session-status"); 
+    const questionText = document.getElementById("question-text");
+    const optionsList = document.getElementById("options-list");
+    const feedbackMessage = document.getElementById("feedback-message");
+    const nextQuestionBtn = document.getElementById("next-question-btn");
+    const rankingContent = document.getElementById("ranking-content");
+    const rankingLoader = document.getElementById("ranking-loader");
+    const rankingBody = document.getElementById("ranking-body");
+
+    let currentQuestionId = null;
+    let currentArea = 'Natureza';
+    let answerSubmitted = false;
+
+    // Função 1: Inicialização - Busca os dados de login no servidor
+    async function initSystem() { 
+        try {
+            const url = `${API_BASE_URL}/user_data.php`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                 throw new Error(`Erro de rede (${response.status}). URL: ${url}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.logged_in) { 
+                currentUsername = data.username; // Será o email
+                currentDisplayName = data.display_name; // Será o nome real
+                isLoggedIn = true;
+                console.log(`Usuário logado: ${currentDisplayName} (${currentUsername})`);
+            } else {
+                isLoggedIn = false;
+                currentUsername = null; // Garante que o ID do usuário é nulo se não logado
+                currentDisplayName = "Visitante (Faça Login)";
+            }
+        } catch (error) {
+            console.error("Erro ao carregar dados do usuário:", error);
+            isLoggedIn = false;
+            currentUsername = null;
+        }
+    }
+    
+    initSystem(); 
+
+    // Navegação de Tabs
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            const targetTab = tab.getAttribute("data-tab");
+            tabs.forEach(t => t.classList.remove("active"));
+            tabContents.forEach(c => c.classList.remove("active"));
+            tab.classList.add("active");
+
+            if (targetTab === 'ranking') {
+                rankingContent.classList.add("active");
+                loadRanking();
+            } else if (targetTab === 'quiz-start') {
+                quizStartContent.classList.add("active");
+            }
+        });
+    });
+
+    // Início do Quiz - Contém o BLOQUEIO
+    startForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        // 🚨 BLOQUEIO CRÍTICO: IMPEDE O INÍCIO DO QUIZ
+        if (!isLoggedIn) {
+            quizStartContent.classList.remove("active");
+            quizContentContainer.classList.add("active");
+            quizArea.style.display = 'block';
+            quizLoader.style.display = 'none';
+            questionText.textContent = `🚫 Você deve estar logado para iniciar o quiz.`;
+            optionsList.innerHTML = '';
+            
+            // Esconde elementos de jogo
+            feedbackMessage.textContent = 'Faça login para salvar sua pontuação no Ranking!';
+            feedbackMessage.className = 'incorrect';
+            nextQuestionBtn.style.display = 'none';
+            
+            return; // Bloqueia a execução
+        }
+        // FIM DO BLOQUEIO
+
+        currentArea = areaSelect.value;
+        
+        sessionCorrectCount = 0;
+        sessionAttemptedCount = 0;
+        if (sessionStatus) sessionStatus.textContent = `Questão 1 de ${QUESTION_LIMIT} (${currentArea})`;
+
+        quizStartContent.classList.remove("active");
+        
+        const quizContainerTab = document.querySelector('.tab-button[data-tab="quiz-start"]');
+        tabs.forEach(t => t.classList.remove("active"));
+        quizContainerTab.classList.add('active'); 
+        document.getElementById('quiz-content-container').classList.add("active");
+        
+        quizArea.style.display = 'none';
+        quizLoader.style.display = 'block';
+        loadQuestion();
+    });
+    
+    // Função 2: Finaliza a Sessão (Chama-se automaticamente se o limite for atingido)
+    async function endQuizSession() {
+        quizArea.style.display = 'none';
+        quizLoader.style.display = 'none'; 
+        
+        // Se o usuário estiver logado (o que deve ser verdade se ele chegou aqui)
+        questionText.textContent = `🎉 Sessão de ${QUESTION_LIMIT} questões encerrada! Você acertou ${sessionCorrectCount} de ${sessionAttemptedCount} questões.`;
+        optionsList.innerHTML = '';
+        nextQuestionBtn.style.display = 'none';
+
+        // Não precisa mais de save_score.php separado, pois o submit_answer.php já salva a cada questão.
+        
+        feedbackMessage.textContent = `Pontuação registrada com sucesso para ${currentDisplayName}!`;
+        feedbackMessage.className = 'correct';
+        
+        nextQuestionBtn.textContent = 'Ver Ranking';
+        nextQuestionBtn.style.display = 'inline-flex';
+        nextQuestionBtn.onclick = () => {
+            document.querySelector('.tab-button[data-tab="ranking"]').click();
+        };
+    }
+
+
+    async function loadQuestion() {
+        if (sessionAttemptedCount >= QUESTION_LIMIT) {
+            endQuizSession();
+            return;
+        }
+        
+        resetQuizUI();
+        quizLoader.style.display = 'block';
+
+        try {
+            const url = `${API_BASE_URL}/get_question.php?area=${currentArea}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Erro de rede (${response.status}). URL: ${url}`);
+            }
+
+            const data = await response.json();
+
+            if (data.error) {
+                questionText.textContent = `Erro do Servidor: ${data.error}.`;
+                quizLoader.style.display = 'none';
+                quizArea.style.display = 'block';
+                return;
+            }
+
+            currentQuestionId = data.question_id;
+            questionText.textContent = data.enunciado;
+
+            if (sessionStatus) sessionStatus.textContent = `Questão ${sessionAttemptedCount + 1} de ${QUESTION_LIMIT} (${currentArea})`;
+
+            ['a', 'b', 'c', 'd', 'e'].forEach(optionKey => {
+                const optionText = data[`option_${optionKey}`];
+                if (optionText) {
+                    createOptionButton(optionKey, optionText);
+                }
+            });
+
+            quizLoader.style.display = 'none';
+            quizArea.style.display = 'block';
+
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            questionText.textContent = `🚨 Erro fatal ao carregar questão. ${error.message}.`;
+            quizLoader.style.display = 'none';
+            quizArea.style.display = 'block';
+        }
+    }
+
+    function createOptionButton(value, text) {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.className = 'option-button';
+        button.dataset.value = value;
+        button.textContent = `${value.toUpperCase()}) ${text}`;
+        button.addEventListener("click", () => handleOptionClick(button, value));
+        li.appendChild(button);
+        optionsList.appendChild(li);
+    }
+
+    // Submissão da Resposta
+    async function handleOptionClick(clickedButton, selectedValue) {
+        // Bloqueio de submissão dupla (cliques rápidos)
+        if (answerSubmitted) return;
+        answerSubmitted = true;
+        
+        // currentUsername será o email, se logado. Se for nulo, a submissão falhará no backend (403).
+        const userIdentifier = currentUsername; 
+        
+        // Validação básica do frontend
+        if (!currentQuestionId || !selectedValue || !userIdentifier) {
+            console.error("ERRO JS: Variáveis críticas faltando ou usuário não logado.", { 
+                question_id: currentQuestionId, 
+                answer: selectedValue, 
+                user_id: userIdentifier 
+            });
+            feedbackMessage.textContent = "Erro: Usuário não identificado. Recarregue a página e faça login.";
+            feedbackMessage.className = 'incorrect';
+            answerSubmitted = false;
+            document.querySelectorAll('.option-button').forEach(btn => btn.disabled = false);
+            return;
+        }
+
+        sessionAttemptedCount++;
+        if (sessionStatus) sessionStatus.textContent = `Questão ${sessionAttemptedCount} de ${QUESTION_LIMIT} (${currentArea})`;
+
+        document.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+
+        try {
+            const url = `${API_BASE_URL}/submit_answer.php`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question_id: currentQuestionId,
+                    answer: selectedValue,
+                    user_id: userIdentifier // Enviando o email
+                })
+            });
+            
+            if (response.status === 403) {
+                // Bloqueio do backend (se o user_id for inválido)
+                const errorBody = await response.json();
+                throw new Error(errorBody.error || "Acesso negado pelo servidor. Você não está logado.");
+            }
+            
+            if (!response.ok) {
+                const errorBody = await response.json(); 
+                throw new Error(errorBody.error || `Erro de rede desconhecido. Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // Lógica de feedback (correto/incorreto)
+            if (result.is_correct) {
+                clickedButton.classList.add('correct');
+                feedbackMessage.textContent = "✅ Você acertou!";
+                feedbackMessage.className = 'correct';
+                sessionCorrectCount++;
+            } else {
+                clickedButton.classList.add('incorrect');
+                feedbackMessage.textContent = "❌ Você errou!";
+                feedbackMessage.className = 'incorrect';
+
+                const correctButton = document.querySelector(`.option-button[data-value="${result.correct_option.toLowerCase()}"]`);
+                if (correctButton) correctButton.classList.add('correct');
+            }
+
+            nextQuestionBtn.style.display = 'inline-flex';
+            
+            if (sessionAttemptedCount >= QUESTION_LIMIT) {
+                nextQuestionBtn.textContent = 'Finalizar Sessão';
+                nextQuestionBtn.onclick = endQuizSession;
+            } else {
+                nextQuestionBtn.textContent = 'Próxima Questão';
+                nextQuestionBtn.onclick = loadQuestion;
+            }
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            feedbackMessage.textContent = `Erro ao salvar resposta: ${error.message}.`;
+            feedbackMessage.className = 'incorrect';
+            answerSubmitted = false;
+        }
+    }
+    
+    function resetQuizUI() {
+        answerSubmitted = false;
+        optionsList.innerHTML = '';
+        feedbackMessage.textContent = '';
+        feedbackMessage.className = '';
+        nextQuestionBtn.style.display = 'none';
+        nextQuestionBtn.onclick = loadQuestion;
+    }
+
+    // Função 3: Carrega o Ranking
+    async function loadRanking() {
+        rankingBody.innerHTML = '';
+        rankingLoader.style.display = 'block';
+
+        try {
+            const url = `${API_BASE_URL}/get_ranking.php`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Erro de rede (${response.status}). URL: ${url}`);
+            }
+            
+            const data = await response.json();
+
+            if (data.length === 0) {
+                rankingBody.innerHTML = '<tr><td colspan="4">Nenhum ranking disponível. Jogue para começar!</td></tr>';
+            } else {
+                data.forEach((user, index) => {
+                    // Usa display_name (Nome Real) que o backend fornece
+                    const displayName = user.display_name; 
+                    rankingBody.innerHTML += `
+                        <tr>
+                            <td><b>${index + 1}º</b></td>
+                            <td>${displayName}</td>
+                            <td>${user.total_correct}</td>
+                            <td>${user.total_attempted}</td>
+                        </tr>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.error("Ranking Fetch Error:", error);
+            rankingBody.innerHTML = `<tr><td colspan="4">Erro ao carregar ranking. Detalhe: ${error.message}</td></tr>`;
+        } finally {
+            rankingLoader.style.display = 'none';
+        }
+    }
+});
+</script>
+</body>
+
+</html>

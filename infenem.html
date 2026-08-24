@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StudyFlix - Guia ENEM</title>
+    <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" />
+    <style>
+        body {
+            margin: 0;
+            background-color: #141414;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background: linear-gradient(to bottom, #e44aff5d, transparent);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            height: 60px;
+        }
+
+        #logo {
+            padding-top: 15px;
+            height: 100px;
+            width: 100px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        /* Estilo para a Barra de Navegação/Status */
+        #nav-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 16px;
+        }
+        
+        #nav-status a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        #nav-status a:hover {
+            background-color: #333;
+        }
+        
+        #nav-status .highlight {
+            background-color: #e44aff;
+            color: #141414;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        section {
+            background-color: #222;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            border-bottom: 2px solid #e44aff5d;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            color: #e44aff;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        ul li {
+            margin-bottom: 10px;
+        }
+
+        /* Botão para o Vídeo ENEM */
+        .video-cta-button {
+            display: inline-block;
+            background-color: #9b59b6; /* Cor roxa do seu layout original */
+            color: white;
+            padding: 12px 25px;
+            margin-top: 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .video-cta-button:hover {
+            background-color: #8e44ad;
+        }
+
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                height: auto;
+                padding-bottom: 15px;
+            }
+            #nav-status {
+                margin-top: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img id="logo" src="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" alt="Logo StudyFlix" />
+</header>
+
+<main>
+    <section id="welcome-message">
+        <h2>🎯 Guia de Estudos para o ENEM</h2>
+        <p>
+            O Exame Nacional do Ensino Médio (ENEM) é a porta de entrada para a universidade. Nesta seção, você encontra tudo que precisa saber sobre a estrutura da prova e como o StudyFlix otimiza sua preparação.
+        </p>
+        <a href="assenem.html" class="video-cta-button">
+            ▶️ ASSISTIR: Como usar o StudyFlix para o ENEM
+        </a>
+    </section>
+
+    <section id="estrutura-enem">
+        <h2>Estrutura da Prova</h2>
+        <p>
+            O ENEM é dividido em <i>quatro áreas de conhecimento</i> mais a <i>Redação</i>, aplicadas em dois dias:
+        </p>
+        <ul>
+            <li>
+                <strong>Dia 1: Linguagens, Códigos e suas Tecnologias</strong> (45 questões) e 
+                <strong>Ciências Humanas e suas Tecnologias</strong> (45 questões) + <i>Redação</i>.
+            </li>
+            <li>
+                <strong>Dia 2: Ciências da Natureza e suas Tecnologias</strong> (45 questões) e 
+                <strong>Matemática e suas Tecnologias</strong> (45 questões).
+            </li>
+        </ul>
+        <p>
+            A prova utiliza a <i>Teoria de Resposta ao Item (TRI)</i>, que valoriza a coerência pedagógica dos seus acertos e não apenas a quantidade.
+        </p>
+    </section>
+    
+    <section id="studyflix-ajuda">
+        <h2>Como o StudyFlix Acelera sua Aprovação</h2>
+        <p>
+            Nossa plataforma foi estruturada para cobrir o conteúdo essencial do ENEM e testar seu domínio com eficiência:
+        </p>
+        <ul>
+            <li>
+                <strong>Cobertura de Conteúdo:</strong> Nossos <i>Módulos de Estudo</i> (Natureza, Humanas, Matemática, Linguagens) mapeiam os tópicos mais recorrentes na prova.
+            </li>
+            <li>
+                <strong>Simulação Efetiva:</strong> O modo <i>Quiz Competitivo</i> permite que você teste seu conhecimento rapidamente, simulando a pressão de tempo.
+            </li>
+            <li>
+                <strong>Foco na TRI:</strong> Ao registrar seus acertos e erros, você pode identificar áreas de "acertos casuais" ou "erros persistentes", fundamentais para otimizar sua nota pela TRI.
+            </li>
+            <li>
+                <strong>Acompanhamento de Desempenho:</strong> Use o Ranking e os relatórios internos para focar seus estudos onde você mais precisa, maximizando o ganho de pontos no exame.
+            </li>
+        </ul>
+    </section>
+
+</main>
+
+<script>
+    // Clique na logo → redireciona para a página principal study.html
+    document.getElementById("logo").addEventListener("click", () => {
+        window.location.href = "ENEM.html";
+    });
+</script>
+
+</body>
+</html>

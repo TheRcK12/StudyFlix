@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Studyflix - Cadastro</title>
+  <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/Z1BfkM6Y/Logo-1.png" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #000 url('https://encurtador.com.br/XGTi') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .header {
+      position: fixed;
+      top: 15px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 100;
+      user-select: none;
+    }
+    .logo {
+      width: 100%;
+      max-width: 468px;
+      height: auto;
+      display: block;
+    }
+    #name {
+      font-size: 2.7rem;
+      font-weight: 900;
+      color: #5a15e3;
+      letter-spacing: 0.5px;
+      margin-left: 0;
+      margin-top: 3px;
+      user-select: none;
+      line-height: 1;
+      transition: color 0.3s;
+      text-shadow: 0 2px 18px #5a15e3b3, 0 0px 2px #fff6ee10;
+    }
+    .container-cadastro {
+      background: rgba(0,0,0,0.85);
+      border: 4px solid #5a15e3;
+      border-radius: 14px;
+      padding: 38px 32px 26px 32px;
+      box-shadow: 0 4px 50px 0 #5a15e393, 0 2px 16px 0 #fff1;
+      max-width: 340px;
+      width: 90vw;
+      margin: 120px auto 80px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .input-container {
+      position: relative;
+      width: 100%;
+      max-width: 275px;
+      margin: 18px auto 0 auto;
+    }
+    .input-container input {
+      width: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      border: 2px solid #5a15e3;
+      border-radius: 8px;
+      font-size: 1rem;
+      padding: 14px 15px;
+      outline: none;
+      box-sizing: border-box;
+      letter-spacing: 1px;
+      transition: border 0.3s, box-shadow 0.3s;
+      box-shadow: 0 0 0 0 #5a15e399;
+      margin-bottom: 2px;
+    }
+    .input-container input:focus {
+      border-color: #a981fa;
+      box-shadow: 0 0 8px #a981facc;
+    }
+    #btnCadastro {
+      background: linear-gradient(90deg,#5a15e3 60%,#a981fa 100%);
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin: 25px 0 0 0;
+      font-size: 1.07rem;
+      box-shadow: 0 0 18px #a981fa99;
+      transition: 0.3s;
+    }
+    #btnCadastro:hover {
+      filter: brightness(1.07);
+      box-shadow: 0 0 38px #a981fa80;
+      letter-spacing: 0.5px;
+    }
+    #notificacao {
+      margin: 0 auto 18px auto;
+      padding: 10px;
+      width: 90%;
+      max-width: 320px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+      font-size: 1rem;
+      box-shadow: 0 2px 18px #a981fa20;
+    }
+    #notificacao.sucesso {
+      background-color: #5a15e3cc;
+      color: white;
+      box-shadow: 0 0 18px #a981fa80;
+    }
+    #notificacao.erro {
+      background-color: #bb33cccc;
+      color: white;
+      box-shadow: 0 0 15px #bb33cccc;
+    }
+    #loginlink {
+      margin-top: 25px;
+      font-size: .93em;
+      color: #ccc;
+      user-select: none;
+    }
+    #loginlink a { color: #5a15e3; text-decoration: underline; }
+    
+    /* Media Queries para celular */
+    @media (max-width: 500px) {
+      .container-cadastro {
+        padding: 25px 7vw 25px 7vw;
+        max-width: 90vw;
+        width: 100%;
+        margin: 90px auto 40px auto;
+      }
+      .input-container {
+        max-width: 100%;
+        margin: 14px auto 0 auto;
+      }
+      .logo {
+        max-width: 280px;
+        width: 80vw;
+        height: auto;
+      }
+      .header {
+        top: 10px;
+        left: 10px;
+      }
+      #name {
+        font-size: 2rem;
+      }
+      #btnCadastro {
+        font-size: 1rem;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <img class="logo" src="https://encurtador.com.br/tUmb" alt="Logo Studyflix" />
+    <span id="name"></span>
+  </header>
+  <div id="notificacao"></div>
+  <form id="cadastroForm" class="container-cadastro" autocomplete="on">
+    <h2 style="color:#fff;margin-bottom:32px;">CADASTRAR</h2>
+    <div class="input-container">
+      <input type="text" name="nome" placeholder="Nome" required autocomplete="name" />
+    </div>
+    <div class="input-container">
+      <input type="email" name="email" placeholder="E-mail" required autocomplete="email" />
+    </div>
+    <div class="input-container">
+      <input type="password" name="senha" placeholder="Senha (Mín. 6 caracteres)" required autocomplete="new-password" minlength="6" />
+    </div>
+    <div class="input-container">
+      <input type="password" name="confirmarSenha" placeholder="Confirmar Senha" required autocomplete="new-password" minlength="6" />
+    </div>
+    <button type="submit" id="btnCadastro">Cadastrar</button>
+    <p id="loginlink">Já tem conta? <a href="login.html">Entrar agora</a></p>
+  </form>
+  <script>
+    document.getElementById('cadastroForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const nome = form.nome.value.trim();
+      const email = form.email.value.trim();
+      const senha = form.senha.value;
+      const confirmarSenha = form.confirmarSenha.value;
+      const notificacao = document.getElementById('notificacao');
+
+      notificacao.style.display = 'none';
+      notificacao.textContent = '';
+      notificacao.className = '';
+
+      // 🚨 NOVO: Validação de Comprimento Mínimo (Reforço no Front-end)
+      if (senha.length < 6) {
+        notificacao.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+        notificacao.className = 'erro';
+        notificacao.style.display = 'block';
+        return;
+      }
+      
+      // Validação de senhas no front-end
+      if (senha !== confirmarSenha) {
+        notificacao.textContent = 'As senhas não coincidem.';
+        notificacao.className = 'erro';
+        notificacao.style.display = 'block';
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      document.getElementById('btnCadastro').disabled = true;
+      document.getElementById('btnCadastro').textContent = 'Enviando...';
+
+      // 🚨 CORREÇÃO DE CAMINHO: Aponta para a API
+      fetch('api/cadastro.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.text())
+      // 🚨 MELHORIA: Trata a resposta como JSON
+      .then(data => {
+        document.getElementById('btnCadastro').disabled = false;
+        document.getElementById('btnCadastro').textContent = 'Cadastrar';
+        
+        let responseJson;
+        try {
+            responseJson = JSON.parse(data);
+        } catch (e) {
+            // Se o JSON falhar, exibe a resposta bruta (pode ser um erro PHP)
+            notificacao.style.display = 'block';
+            notificacao.textContent = '⚠️ Erro inesperado. Resposta do servidor: ' + data.substring(0, 50) + '...';
+            notificacao.className = 'erro';
+            return;
+        }
+
+        notificacao.style.display = 'block';
+        
+        if (responseJson.success) {
+            notificacao.textContent = '✅ Cadastro realizado com sucesso!';
+            notificacao.className = 'sucesso';
+            setTimeout(() => {
+              window.location.href = 'page.html';
+            }, 1200);
+        } else {
+            // Exibe a mensagem de erro fornecida pelo PHP (incluindo email já cadastrado)
+            notificacao.textContent = responseJson.message || 'Erro desconhecido no cadastro.';
+            notificacao.className = 'erro';
+        }
+      })
+      .catch(() => {
+        document.getElementById('btnCadastro').disabled = false;
+        document.getElementById('btnCadastro').textContent = 'Cadastrar';
+        notificacao.style.display = 'block';
+        notificacao.textContent = '⚠️ Erro de rede ou servidor. Tente novamente mais tarde.';
+        notificacao.className = 'erro';
+      });
+    });
+  </script>
+</body>
+</html>
