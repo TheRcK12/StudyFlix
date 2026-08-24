@@ -10,24 +10,27 @@ case "$PORT_VALUE" in
     ;;
 esac
 
-# Railway precisa alcançar o processo pela interface 0.0.0.0 e pela porta PORT.
-# Configuramos o Apache antes de qualquer tentativa de banco, para o servidor web
-# não ficar refém do PostgreSQL durante o boot.
-sed -ri "s/^[[:space:]]*Listen[[:space:]]+[0-9]+$/Listen 0.0.0.0:${PORT_VALUE}/" /etc/apache2/ports.conf
-sed -ri "s/<VirtualHost[[:space:]]+\\*:[0-9]+>/<VirtualHost *:${PORT_VALUE}>/" /etc/apache2/sites-available/000-default.conf
+# Gera a configuração do nginx com a porta dinâmica do Railway.
+sed "s/__PORT__/${PORT_VALUE}/g" \
+  /etc/nginx/templates/studyflix.conf.template \
+  > /etc/nginx/conf.d/default.conf
 
-echo "[StudyFlix] Apache configurado em 0.0.0.0:${PORT_VALUE}"
-apache2ctl configtest
+echo "[StudyFlix] Nginx configurado em 0.0.0.0:${PORT_VALUE}"
 
-# A migração roda em segundo plano. Se o PostgreSQL ainda não estiver configurado
-# ou pronto, isso NÃO derruba o Apache. Assim /health.php e as páginas estáticas
-# continuam disponíveis e o Railway não devolve 502 apenas por causa do banco.
+# Falha de configuração derruba o deploy imediatamente, em vez de entrar em loop silencioso.
+php-fpm -t
+nginx -t
+
+# O PHP-FPM é iniciado antes do nginx para que /health.php responda assim que o domínio abrir.
+php-fpm -D
+
+# Preparação do MongoDB roda em paralelo. Banco indisponível não impede o site estático/healthcheck de subir.
 (
-    if php /opt/studyflix/scripts/migrate.php; then
-        echo "[StudyFlix] Banco preparado com sucesso."
+    if php /opt/studyflix/scripts/bootstrap_mongo.php; then
+        echo "[StudyFlix] MongoDB preparado com sucesso."
     else
-        echo "[StudyFlix] AVISO: migração do banco falhou. O site continuará online, mas login/cadastro/quiz dependerão da correção do DATABASE_URL." >&2
+        echo "[StudyFlix] AVISO: preparação do MongoDB falhou. O site continuará online; login/cadastro/quiz dependem do MONGO_URL." >&2
     fi
 ) &
 
-exec apache2-foreground
+exec nginx -g 'daemon off;'

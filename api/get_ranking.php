@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 require __DIR__ . '/db_config.php';
+require __DIR__ . '/mongo_helpers.php';
 
 function respond(array $payload, int $status = 200): never
 {
@@ -13,20 +14,33 @@ function respond(array $payload, int $status = 200): never
     exit;
 }
 
-if (!$pdo) {
+if (!$mongo || !$mongo_db) {
     respond(['error' => 'Banco de dados indisponível.'], 503);
 }
 
 try {
-    $stmt = $pdo->query(
-        "SELECT display_name, total_correct, total_attempted
-         FROM user_scores
-         WHERE username NOT LIKE 'guest_%'
-         ORDER BY total_correct DESC, total_attempted DESC, display_name ASC
-         LIMIT 10"
+    $ranking = studyflix_mongo_find_many(
+        $mongo,
+        $mongo_db,
+        'user_scores',
+        ['username' => ['$not' => new MongoDB\BSON\Regex('^guest_')]],
+        [
+            'projection' => [
+                '_id' => 0,
+                'display_name' => 1,
+                'total_correct' => 1,
+                'total_attempted' => 1,
+            ],
+            'sort' => [
+                'total_correct' => -1,
+                'total_attempted' => -1,
+                'display_name' => 1,
+            ],
+            'limit' => 10,
+        ]
     );
 
-    respond($stmt->fetchAll());
+    respond($ranking);
 } catch (Throwable $e) {
     error_log('[StudyFlix][RANKING] ' . $e->getMessage());
     respond(['error' => 'Não foi possível carregar o ranking.'], 500);

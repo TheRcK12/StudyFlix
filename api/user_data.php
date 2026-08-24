@@ -7,6 +7,7 @@ header('Cache-Control: no-store');
 require __DIR__ . '/session.php';
 studyflix_start_session();
 require __DIR__ . '/db_config.php';
+require __DIR__ . '/mongo_helpers.php';
 
 function respond(array $payload, int $status = 200): never
 {
@@ -15,7 +16,7 @@ function respond(array $payload, int $status = 200): never
     exit;
 }
 
-if (!$pdo) {
+if (!$mongo || !$mongo_db) {
     respond(['logged_in' => false, 'error' => 'Banco de dados indisponível.'], 503);
 }
 
@@ -25,9 +26,13 @@ if (!is_string($userEmail) || $userEmail === '') {
 }
 
 try {
-    $stmt = $pdo->prepare('SELECT email, nome FROM usuarios WHERE email = :email LIMIT 1');
-    $stmt->execute([':email' => $userEmail]);
-    $user = $stmt->fetch();
+    $user = studyflix_mongo_find_one(
+        $mongo,
+        $mongo_db,
+        'usuarios',
+        ['email' => $userEmail],
+        ['projection' => ['_id' => 0, 'email' => 1, 'nome' => 1]]
+    );
 
     if (!$user) {
         studyflix_destroy_session();
@@ -37,7 +42,7 @@ try {
     respond([
         'logged_in' => true,
         'username' => (string) $user['email'],
-        'display_name' => (string) $user['nome'],
+        'display_name' => (string) ($user['nome'] ?? 'Aluno'),
     ]);
 } catch (Throwable $e) {
     error_log('[StudyFlix][USER_DATA] ' . $e->getMessage());

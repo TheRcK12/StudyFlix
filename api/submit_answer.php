@@ -7,6 +7,7 @@ header('Cache-Control: no-store');
 require __DIR__ . '/session.php';
 studyflix_start_session();
 require __DIR__ . '/db_config.php';
+require __DIR__ . '/mongo_helpers.php';
 
 function respond(array $payload, int $status = 200): never
 {
@@ -19,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(['error' => 'Método não permitido.'], 405);
 }
 
-if (!$pdo) {
+if (!$mongo || !$mongo_db) {
     respond(['error' => 'Banco de dados indisponível.'], 503);
 }
 
@@ -43,49 +44,57 @@ if ($questionId === '' || !in_array($userAnswer, ['a', 'b', 'c', 'd', 'e'], true
 }
 
 try {
-    $pdo->beginTransaction();
+    $question = studyflix_mongo_find_one(
+        $mongo,
+        $mongo_db,
+        'questions',
+        ['question_id' => $questionId],
+        ['projection' => ['_id' => 0, 'correct_option' => 1]]
+    );
 
-    $stmt = $pdo->prepare('SELECT correct_option FROM questions WHERE question_id = :id LIMIT 1');
-    $stmt->execute([':id' => $questionId]);
-    $question = $stmt->fetch();
-
-    if (!$question) {
-        $pdo->rollBack();
+    if (!$question || !isset($question['correct_option'])) {
         respond(['error' => 'Questão não encontrada.'], 404);
+    }
+
+    $user = studyflix_mongo_find_one(
+        $mongo,
+        $mongo_db,
+        'usuarios',
+        ['email' => $userEmail],
+        ['projection' => ['_id' => 0, 'nome' => 1]]
+    );
+
+    if (!$user) {
+        studyflix_destroy_session();
+        respond(['error' => 'Usuário da sessão não encontrado. Faça login novamente.'], 401);
     }
 
     $correctOption = strtolower((string) $question['correct_option']);
     $isCorrect = $userAnswer === $correctOption;
-    $correctIncrement = $isCorrect ? 1 : 0;
+    $now = new MongoDB\BSON\UTCDateTime();
 
-    $stmt = $pdo->prepare('SELECT nome FROM usuarios WHERE email = :email LIMIT 1');
-    $stmt->execute([':email' => $userEmail]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
-        $pdo->rollBack();
-        respond(['error' => 'Usuário da sessão não encontrado. Faça login novamente.'], 401);
-    }
-
-    $displayName = (string) $user['nome'];
-
-    $stmt = $pdo->prepare(
-        'INSERT INTO user_scores (user_id, username, display_name, total_attempted, total_correct)
-         VALUES (:user_id, :username, :display_name, 1, :correct)
-         ON CONFLICT (username) DO UPDATE
-         SET total_attempted = user_scores.total_attempted + 1,
-             total_correct = user_scores.total_correct + EXCLUDED.total_correct,
-             display_name = EXCLUDED.display_name,
-             updated_at = NOW()'
+    studyflix_mongo_update_one(
+        $mongo,
+        $mongo_db,
+        'user_scores',
+        ['username' => $userEmail],
+        [
+            '$set' => [
+                'user_id' => $userEmail,
+                'username' => $userEmail,
+                'display_name' => (string) ($user['nome'] ?? 'Aluno'),
+                'updated_at' => $now,
+            ],
+            '$setOnInsert' => [
+                'created_at' => $now,
+            ],
+            '$inc' => [
+                'total_attempted' => 1,
+                'total_correct' => $isCorrect ? 1 : 0,
+            ],
+        ],
+        true
     );
-    $stmt->execute([
-        ':user_id' => $userEmail,
-        ':username' => $userEmail,
-        ':display_name' => $displayName,
-        ':correct' => $correctIncrement,
-    ]);
-
-    $pdo->commit();
 
     respond([
         'is_correct' => $isCorrect,
@@ -93,10 +102,6 @@ try {
         'message' => $isCorrect ? 'Correto!' : 'Incorreto.',
     ]);
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-
     error_log('[StudyFlix][SUBMIT_ANSWER] ' . $e->getMessage());
     respond(['error' => 'Não foi possível salvar a resposta.'], 500);
 }

@@ -1,22 +1,22 @@
-# Validação da conversão Railway
+# Validação da V3 MongoDB
 
-Validações executadas sobre esta versão:
+Validações executadas neste pacote antes da geração do ZIP:
 
-- PHP: todos os arquivos `.php` passaram em `php -l` sem erro de sintaxe.
-- JavaScript: scripts inline dos 55 arquivos HTML passaram em `node --check` sem erro de sintaxe.
-- Referências locais: nenhum link local, CSS, script, imagem local ou `form action` aponta para arquivo inexistente.
-- Credenciais: nenhuma credencial PostgreSQL antiga permanece gravada no código de produção.
-- Healthcheck: `/health.php` foi executado localmente e retornou HTTP 200 com JSON válido.
-- Falha sem banco: a API de login retorna HTTP 503 com mensagem controlada quando o PostgreSQL não está configurado, sem expor senha ou string de conexão.
-- Migração: `scripts/migrate.php` é sintaticamente válido e contém criação idempotente das tabelas + seed das questões de teste.
-- Entrypoint: `docker/entrypoint.sh` passou na validação de sintaxe do shell.
+- 13 arquivos PHP verificados com `php -l`: **0 erros de sintaxe**;
+- 55 HTMLs com JavaScript inline analisados, total de 64 blocos JS: **0 erros de sintaxe**;
+- 18 referências locais em HTML verificadas: **0 caminhos inexistentes**;
+- `docker/entrypoint.sh` verificado com `sh -n`: **OK**;
+- template do Nginx testado após substituir `__PORT__` por `8080`: `nginx -t` **OK**;
+- `/health.php` executado localmente via PHP: **HTTP 200**;
+- `index.html` executado localmente via PHP: **HTTP 200**;
+- API sem MongoDB disponível retorna **503 controlado**, sem fatal error;
+- busca nos arquivos de runtime: **0 referências a PDO, PostgreSQL, DATABASE_URL, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD ou schema.sql**;
+- não existe arquivo de configuração Apache no pacote;
+- não existe `schema.sql` nem migration PostgreSQL no pacote;
+- bootstrap MongoDB usa índices + upsert e não apaga dados existentes.
 
-## Validação que depende do Railway
+## Limite da validação local
 
-A conexão real com o PostgreSQL do Railway e o build do container precisam ser confirmados no primeiro deploy, porque dependem do `DATABASE_URL`, da rede privada e do projeto Railway que será criado pelo proprietário do sistema.
+O ambiente de geração deste pacote não possui Docker Engine nem um MongoDB Railway real conectado. Portanto, o build completo da imagem e a autenticação contra o `MONGO_URL` do seu projeto só podem ser confirmados durante o deploy no Railway.
 
-O roteiro de conferência pós-deploy está em `README_RAILWAY.md`.
-
-## Correção V2 — Railway 502
-
-O startup foi alterado para que o Apache seja configurado e iniciado independentemente do resultado da migração PostgreSQL. A migração agora roda em segundo plano e uma falha de `DATABASE_URL` não encerra o processo web. O Apache escuta explicitamente em `0.0.0.0:$PORT`.
+O entrypoint foi feito para validar `php-fpm -t` e `nginx -t` no próprio container antes de iniciar o serviço. Se houver falha de configuração no build/runtime, ela aparecerá diretamente nos Deploy Logs em vez de gerar um loop obscuro do Apache.
