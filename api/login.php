@@ -1,54 +1,60 @@
 <?php
-// api/login.php - CÓDIGO FINAL E SINCRONIZADO
-// 🚨 CRÍTICO: Define o cookie para ser válido em todo o site
-session_set_cookie_params([
-    'lifetime' => 0,      
-    'path' => '/',        
-    'httponly' => true,   
-    'samesite' => 'Lax'   
-]);
+declare(strict_types=1);
 
-session_start();
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
-include 'db_config.php'; 
+require __DIR__ . '/session.php';
+studyflix_start_session();
+require __DIR__ . '/db_config.php';
 
-$email = $_POST['email'] ?? '';
-$senha = $_POST['senha'] ?? '';
-
-$email = filter_var($email, FILTER_SANITIZE_EMAIL);
-
-if (empty($email) || empty($senha)) {
-    echo json_encode(['success' => false, 'message' => 'Preencha todos os campos.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-try {
-    $db = $pdo ?? null; 
-    
-    if (!$db) {
-        throw new Exception("Falha na conexão: Variável \$pdo não encontrada.");
-    }
-
-    $sql = "SELECT email, nome, senha FROM usuarios WHERE email = :email LIMIT 1"; 
-    $stmt = $db->prepare($sql);
-    $stmt->execute([':email' => $email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user && password_verify($senha, $user['senha'])) {
-        
-        // 🚨 CRÍTICO: SINCRONIZAÇÃO DA SESSÃO
-        $_SESSION['user_email'] = $user['email'];    
-        $_SESSION['user_display_name'] = $user['nome']; 
-
-        echo json_encode(['success' => true, 'message' => 'Login realizado!', 'redirect' => 'page.html']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Email ou senha incorretos.']);
-    }
-
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro fatal: ' . $e->getMessage()]);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
-?>
+
+if (!$pdo) {
+    respond(['success' => false, 'message' => 'Banco de dados temporariamente indisponível.'], 503);
+}
+
+$emailInput = trim((string) ($_POST['email'] ?? ''));
+$senha = (string) ($_POST['senha'] ?? '');
+
+if ($emailInput === '' || $senha === '') {
+    respond(['success' => false, 'message' => 'Preencha todos os campos.'], 400);
+}
+
+$email = filter_var($emailInput, FILTER_VALIDATE_EMAIL);
+if ($email === false) {
+    respond(['success' => false, 'message' => 'Informe um e-mail válido.'], 400);
+}
+$email = strtolower($email);
+
+try {
+    $stmt = $pdo->prepare('SELECT email, nome, senha FROM usuarios WHERE email = :email LIMIT 1');
+    $stmt->execute([':email' => $email]);
+    $user = $stmt->fetch();
+
+    if (!$user || !password_verify($senha, (string) $user['senha'])) {
+        respond(['success' => false, 'message' => 'E-mail ou senha incorretos.'], 401);
+    }
+
+    session_regenerate_id(true);
+    $_SESSION['user_email'] = (string) $user['email'];
+    $_SESSION['user_display_name'] = (string) $user['nome'];
+
+    respond([
+        'success' => true,
+        'message' => 'Login realizado com sucesso.',
+        'redirect' => 'page.html',
+    ]);
+} catch (Throwable $e) {
+    error_log('[StudyFlix][LOGIN] ' . $e->getMessage());
+    respond(['success' => false, 'message' => 'Não foi possível realizar o login agora.'], 500);
+}

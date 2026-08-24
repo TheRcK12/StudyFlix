@@ -1,98 +1,102 @@
 <?php
-// api/submit_answer.php - CÓDIGO FINAL E SEGURO
+declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
-session_start(); 
-include __DIR__ . '/db_config.php';
+header('Cache-Control: no-store');
 
-$db = $pdo ?? null;
+require __DIR__ . '/session.php';
+studyflix_start_session();
+require __DIR__ . '/db_config.php';
 
-if (!$db) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro interno: Conexão com o banco não disponível.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
-
-if (!isset($data['question_id'], $data['answer'], $data['user_id'])) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Dados incompletos.']);
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(['error' => 'Método não permitido.'], 405);
 }
 
-$question_id = $data['question_id'];
-$user_answer = $data['answer'];
-$user_id = $data['user_id']; // Esperamos receber o email aqui
+if (!$pdo) {
+    respond(['error' => 'Banco de dados indisponível.'], 503);
+}
 
-// 🚨 BLOQUEIO CRÍTICO: Rejeita se não for um email logado
-if (empty($user_id) || str_starts_with($user_id, 'guest_')) {
-    http_response_code(403); 
-    echo json_encode(['error' => 'Acesso negado. É necessário estar logado para salvar a pontuação.']);
-    exit();
+$userEmail = $_SESSION['user_email'] ?? null;
+if (!is_string($userEmail) || $userEmail === '') {
+    respond(['error' => 'É necessário estar logado para responder.'], 401);
+}
+
+$raw = file_get_contents('php://input');
+$data = json_decode($raw ?: '', true);
+
+if (!is_array($data)) {
+    respond(['error' => 'Corpo JSON inválido.'], 400);
+}
+
+$questionId = trim((string) ($data['question_id'] ?? ''));
+$userAnswer = strtolower(trim((string) ($data['answer'] ?? '')));
+
+if ($questionId === '' || !in_array($userAnswer, ['a', 'b', 'c', 'd', 'e'], true)) {
+    respond(['error' => 'Dados da resposta inválidos.'], 400);
 }
 
 try {
-    $db->beginTransaction(); 
+    $pdo->beginTransaction();
 
-    // 1. Busca a resposta correta
-    $stmt = $db->prepare("SELECT correct_option FROM questions WHERE question_id = ?");
-    $stmt->execute([$question_id]);
-    $question_data = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare('SELECT correct_option FROM questions WHERE question_id = :id LIMIT 1');
+    $stmt->execute([':id' => $questionId]);
+    $question = $stmt->fetch();
 
-    if (!$question_data) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Questão não encontrada no banco de dados.']);
-        $db->rollBack();
-        exit();
+    if (!$question) {
+        $pdo->rollBack();
+        respond(['error' => 'Questão não encontrada.'], 404);
     }
 
-    $correct_option = $question_data['correct_option'];
-    $is_correct = (strtolower($user_answer) === strtolower($correct_option));
-    $is_correct_int = $is_correct ? 1 : 0;
-    
-    // 2. Busca o nome real (display_name)
-    $stmt_name = $db->prepare("SELECT nome FROM usuarios WHERE email = ?"); // ⚠️ AJUSTE A COLUNA 'nome' se necessário!
-    $stmt_name->execute([$user_id]);
-    $user_data = $stmt_name->fetch(PDO::FETCH_ASSOC);
+    $correctOption = strtolower((string) $question['correct_option']);
+    $isCorrect = $userAnswer === $correctOption;
+    $correctIncrement = $isCorrect ? 1 : 0;
 
-    $display_name_value = $user_data['nome'] ?? $user_id; 
+    $stmt = $pdo->prepare('SELECT nome FROM usuarios WHERE email = :email LIMIT 1');
+    $stmt->execute([':email' => $userEmail]);
+    $user = $stmt->fetch();
 
-    
-    // 3. PostgreSQL UPSERT: user_id e username são o email do usuário (resolve NOT NULL)
-    $sql_upsert = "INSERT INTO user_scores (user_id, username, total_attempted, total_correct, display_name) 
-                   VALUES (?, ?, 1, ?, ?)
-                   ON CONFLICT (username) DO UPDATE 
-                   SET total_attempted = user_scores.total_attempted + 1,
-                       total_correct = user_scores.total_correct + ?,
-                       display_name = EXCLUDED.display_name";
+    if (!$user) {
+        $pdo->rollBack();
+        respond(['error' => 'Usuário da sessão não encontrado. Faça login novamente.'], 401);
+    }
 
-    $stmt = $db->prepare($sql_upsert);
+    $displayName = (string) $user['nome'];
 
+    $stmt = $pdo->prepare(
+        'INSERT INTO user_scores (user_id, username, display_name, total_attempted, total_correct)
+         VALUES (:user_id, :username, :display_name, 1, :correct)
+         ON CONFLICT (username) DO UPDATE
+         SET total_attempted = user_scores.total_attempted + 1,
+             total_correct = user_scores.total_correct + EXCLUDED.total_correct,
+             display_name = EXCLUDED.display_name,
+             updated_at = NOW()'
+    );
     $stmt->execute([
-        $user_id,             
-        $user_id,             
-        $is_correct_int,      
-        $display_name_value,  
-        $is_correct_int       
+        ':user_id' => $userEmail,
+        ':username' => $userEmail,
+        ':display_name' => $displayName,
+        ':correct' => $correctIncrement,
     ]);
 
-    $db->commit(); 
+    $pdo->commit();
 
-    // 4. Retorna o resultado
-    echo json_encode([
-        'is_correct' => $is_correct,
-        'correct_option' => $correct_option,
-        'message' => $is_correct ? 'Correto!' : 'Incorreto.'
+    respond([
+        'is_correct' => $isCorrect,
+        'correct_option' => $correctOption,
+        'message' => $isCorrect ? 'Correto!' : 'Incorreto.',
     ]);
-
-} catch (PDOException $e) {
-    if ($db->inTransaction()) {
-        $db->rollBack(); 
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro SQL ao salvar resposta: ' . $e->getMessage()]);
-}
 
-$db = null;
-?>
+    error_log('[StudyFlix][SUBMIT_ANSWER] ' . $e->getMessage());
+    respond(['error' => 'Não foi possível salvar a resposta.'], 500);
+}

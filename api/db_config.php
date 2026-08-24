@@ -1,41 +1,73 @@
 <?php
-// api/db_config.php - Configuração para PostgreSQL (Render)
-// 🚨 CRÍTICO: Removendo die() e garantindo que o JSON de erro seja retornado pelo script principal.
+declare(strict_types=1);
 
-// Inicializa a variável $pdo como null
+/**
+ * Conexão PostgreSQL compatível com Railway.
+ *
+ * Prioridade:
+ * 1) DATABASE_URL (recomendado no Railway)
+ * 2) PGHOST, PGPORT, PGDATABASE, PGUSER e PGPASSWORD
+ *
+ * Nenhuma credencial fica gravada no código-fonte.
+ */
+
 $pdo = null;
-
-// Sua string de conexão (ajustada para variáveis)
-$db_url = "postgresql://studyflix_user:iofU2bx0K4LEvFJU7kHYjoHnXaKj2R2y@dpg-d4kbinodl3ps73dh16l0-a/studyflix_db_qurq_hi3g";
-
-// Parseia a URL de conexão para obter as credenciais separadas
-$url_parts = parse_url($db_url);
-
-// Verifica se o parse_url foi bem-sucedido e se as partes cruciais existem
-if ($url_parts === false || !isset($url_parts['host'], $url_parts['user'], $url_parts['pass'], $url_parts['path'])) {
-    // Se a string de conexão for inválida, $pdo permanece null
-    return;
-}
-
-$host = $url_parts['host'];
-$user = $url_parts['user'];
-$password = $url_parts['pass'];
-$dbname = ltrim($url_parts['path'], '/'); 
-$port = $url_parts['port'] ?? 5432; // Adiciona a porta padrão 5432, se não estiver na URL
+$db_connection_error = null;
 
 try {
-    // String de conexão DSN completa para PostgreSQL
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
-    
-    $pdo = new PDO($dsn, $user, $password);
-    
-    // Configura o PDO para lançar exceções em caso de erro (CRÍTICO para o try/catch)
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $databaseUrl = trim((string) (getenv('DATABASE_URL') ?: ''));
 
-} catch (PDOException $e) {
-    // Se a conexão falhar, define $pdo como null (não usa die()!)
-    $pdo = null; 
-    // O script principal (submit_answer.php ou user_data.php) checará se $pdo é null e retornará o erro JSON.
+    if ($databaseUrl !== '') {
+        $parts = parse_url($databaseUrl);
+
+        if ($parts === false || !isset($parts['host'], $parts['user'], $parts['path'])) {
+            throw new RuntimeException('DATABASE_URL inválida.');
+        }
+
+        $host = rawurldecode((string) $parts['host']);
+        $port = isset($parts['port']) ? (int) $parts['port'] : 5432;
+        $database = rawurldecode(ltrim((string) $parts['path'], '/'));
+        $user = rawurldecode((string) $parts['user']);
+        $password = rawurldecode((string) ($parts['pass'] ?? ''));
+
+        $query = [];
+        if (!empty($parts['query'])) {
+            parse_str((string) $parts['query'], $query);
+        }
+        $sslmode = getenv('PGSSLMODE') ?: ($query['sslmode'] ?? null);
+    } else {
+        $host = trim((string) (getenv('PGHOST') ?: ''));
+        $port = (int) (getenv('PGPORT') ?: 5432);
+        $database = trim((string) (getenv('PGDATABASE') ?: ''));
+        $user = trim((string) (getenv('PGUSER') ?: ''));
+        $password = (string) (getenv('PGPASSWORD') ?: '');
+        $sslmode = getenv('PGSSLMODE') ?: null;
+
+        if ($host === '' || $database === '' || $user === '') {
+            throw new RuntimeException(
+                'Banco não configurado. Defina DATABASE_URL ou as variáveis PGHOST/PGDATABASE/PGUSER.'
+            );
+        }
+    }
+
+    $dsn = sprintf(
+        'pgsql:host=%s;port=%d;dbname=%s;connect_timeout=8',
+        $host,
+        $port,
+        $database
+    );
+
+    if (is_string($sslmode) && $sslmode !== '') {
+        $dsn .= ';sslmode=' . $sslmode;
+    }
+
+    $pdo = new PDO($dsn, $user, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+} catch (Throwable $e) {
+    $pdo = null;
+    $db_connection_error = $e->getMessage();
+    error_log('[StudyFlix][DB] Falha de conexão: ' . $e->getMessage());
 }
-
-// REMOVA A TAG DE FECHAMENTO ?>

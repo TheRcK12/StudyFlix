@@ -1,49 +1,51 @@
 <?php
-// api/get_question.php
+declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
-// Inclui o arquivo de configuração do banco (que define $pdo)
-include __DIR__ . '/db_config.php'; 
+require __DIR__ . '/session.php';
+studyflix_start_session();
+require __DIR__ . '/db_config.php';
 
-// CRÍTICO: Garante que a variável correta seja usada ou exibe erro limpo
-$db = $pdo ?? null;
-
-if (!$db) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro interno: Variável de conexão com o banco ($pdo) não disponível.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-// Obtém a área da URL, usa 'Natureza' como padrão
-$area = $_GET['area'] ?? 'Natureza';
-
-try {
-    // 1. PostgreSQL usa RANDOM() para ordem aleatória
-    // A query parece correta e pronta para PostgreSQL.
-    $sql = "SELECT question_id, enunciado, option_a, option_b, option_c, option_d, option_e 
-            FROM questions 
-            WHERE area = ? 
-            ORDER BY RANDOM() 
-            LIMIT 1";
-            
-    // 2. CORREÇÃO: Usa $db (que é $pdo) para preparar a query
-    $stmt = $db->prepare($sql);
-    $stmt->execute([$area]); 
-
-    if ($stmt->rowCount() > 0) {
-        $question = $stmt->fetch(PDO::FETCH_ASSOC);
-        echo json_encode($question);
-    } else {
-        http_response_code(404);
-        echo json_encode(['error' => 'Nenhuma questão encontrada para a área: ' . htmlspecialchars($area)]);
-    }
-
-} catch (PDOException $e) {
-    // Se a query falhar (ex: tabela questions não existe), retorna JSON de erro
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro ao buscar questão (SQL): ' . $e->getMessage()]);
+if (!$pdo) {
+    respond(['error' => 'Banco de dados indisponível.'], 503);
 }
 
-// 3. CORREÇÃO: Fecha a variável de conexão correta
-$db = null; 
-?>
+if (empty($_SESSION['user_email'])) {
+    respond(['error' => 'É necessário estar logado para iniciar o quiz.'], 401);
+}
+
+$area = trim((string) ($_GET['area'] ?? 'Natureza'));
+$areasPermitidas = ['Natureza', 'Humanas', 'Matematica', 'Linguagens'];
+if (!in_array($area, $areasPermitidas, true)) {
+    respond(['error' => 'Área inválida.'], 400);
+}
+
+try {
+    $stmt = $pdo->prepare(
+        'SELECT question_id, enunciado, option_a, option_b, option_c, option_d, option_e
+         FROM questions
+         WHERE area = :area
+         ORDER BY RANDOM()
+         LIMIT 1'
+    );
+    $stmt->execute([':area' => $area]);
+    $question = $stmt->fetch();
+
+    if (!$question) {
+        respond(['error' => 'Nenhuma questão encontrada para esta área.'], 404);
+    }
+
+    respond($question);
+} catch (Throwable $e) {
+    error_log('[StudyFlix][GET_QUESTION] ' . $e->getMessage());
+    respond(['error' => 'Não foi possível carregar a questão.'], 500);
+}

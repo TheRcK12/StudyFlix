@@ -1,22 +1,29 @@
-# Usa imagem base oficial do PHP com Apache
-FROM php:8.2-apache
+FROM php:8.3-apache
 
-# Atualiza os pacotes e instala dependências necessárias do PostgreSQL
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql pgsql
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq-dev libonig-dev \
+    && docker-php-ext-install pdo_pgsql mbstring \
+    && a2enmod headers \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copia o projeto para o diretório padrão do Apache
+COPY docker/apache-studyflix.conf /etc/apache2/conf-available/studyflix.conf
+RUN a2enconf studyflix
+
+WORKDIR /var/www/html
 COPY . /var/www/html/
 
-# Dá permissão para o Apache acessar os arquivos
-RUN chown -R www-data:www-data /var/www/html
+# Arquivos de infraestrutura ficam fora do DocumentRoot.
+RUN cp /var/www/html/docker/entrypoint.sh /usr/local/bin/studyflix-entrypoint \
+    && chmod +x /usr/local/bin/studyflix-entrypoint \
+    && mkdir -p /opt/studyflix \
+    && cp -r /var/www/html/database /opt/studyflix/database \
+    && cp -r /var/www/html/scripts /opt/studyflix/scripts \
+    && rm -rf /var/www/html/docker /var/www/html/database /var/www/html/scripts \
+    && rm -f /var/www/html/Dockerfile /var/www/html/README_RAILWAY.md \
+              /var/www/html/.env.example /var/www/html/.dockerignore /var/www/html/composer.json \
+    && chown -R www-data:www-data /var/www/html
 
-# Habilita o mod_rewrite do Apache (útil para rotas amigáveis)
-RUN a2enmod rewrite
+ENV PORT=8080
+EXPOSE 8080
 
-# Expõe a porta 80 (onde o servidor vai rodar)
-EXPOSE 80
-
-# Inicia o Apache quando o container subir
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/studyflix-entrypoint"]

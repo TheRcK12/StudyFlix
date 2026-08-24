@@ -1,45 +1,45 @@
 <?php
-// api/user_data.php - CÓDIGO FINAL E SINCRONIZADO
+declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
-// 🚨 LÊ A SESSÃO ESCRITA PELO login.php ou cadastro.php
-session_start(); 
+require __DIR__ . '/session.php';
+studyflix_start_session();
+require __DIR__ . '/db_config.php';
 
-include __DIR__ . '/db_config.php';
-
-$db = $pdo ?? null;
-
-if (!$db) {
-    http_response_code(500);
-    echo json_encode(['logged_in' => false, 'error' => 'Erro de conexão DB.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-// Lendo a chave de sessão configurada no login/cadastro
-$user_email = $_SESSION['user_email'] ?? null; 
-
-if ($user_email) {
-    try {
-        // Busca o nome real para o frontend
-        $stmt = $db->prepare("SELECT email, nome FROM usuarios WHERE email = ?"); // ⚠️ AJUSTE A COLUNA 'nome' se necessário!
-        $stmt->execute([$user_email]);
-        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user_data) {
-            echo json_encode([
-                'logged_in' => true,
-                'username' => $user_data['email'],      
-                'display_name' => $user_data['nome'] 
-            ]);
-        } else {
-            echo json_encode(['logged_in' => false, 'error' => 'Usuário logado não encontrado no banco de dados.']);
-        }
-
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['logged_in' => false, 'error' => 'Erro SQL ao buscar dados.']);
-    }
-} else {
-    echo json_encode(['logged_in' => false]);
+if (!$pdo) {
+    respond(['logged_in' => false, 'error' => 'Banco de dados indisponível.'], 503);
 }
-?>
+
+$userEmail = $_SESSION['user_email'] ?? null;
+if (!is_string($userEmail) || $userEmail === '') {
+    respond(['logged_in' => false]);
+}
+
+try {
+    $stmt = $pdo->prepare('SELECT email, nome FROM usuarios WHERE email = :email LIMIT 1');
+    $stmt->execute([':email' => $userEmail]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        studyflix_destroy_session();
+        respond(['logged_in' => false]);
+    }
+
+    respond([
+        'logged_in' => true,
+        'username' => (string) $user['email'],
+        'display_name' => (string) $user['nome'],
+    ]);
+} catch (Throwable $e) {
+    error_log('[StudyFlix][USER_DATA] ' . $e->getMessage());
+    respond(['logged_in' => false, 'error' => 'Não foi possível consultar a sessão.'], 500);
+}

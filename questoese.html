@@ -500,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    initSystem(); 
+    const systemReadyPromise = initSystem();
 
     // Navegação de Tabs
     tabs.forEach(tab => {
@@ -520,8 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Início do Quiz - Contém o BLOQUEIO
-    startForm.addEventListener("submit", (e) => {
+    startForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        await systemReadyPromise;
         
         // 🚨 BLOQUEIO CRÍTICO: IMPEDE O INÍCIO DO QUIZ
         if (!isLoggedIn) {
@@ -648,7 +649,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (answerSubmitted) return;
         answerSubmitted = true;
         
-        // currentUsername será o email, se logado. Se for nulo, a submissão falhará no backend (403).
+        // O backend usa a sessão autenticada. currentUsername é usado apenas para validar o estado da tela.
         const userIdentifier = currentUsername; 
         
         // Validação básica do frontend
@@ -677,8 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     question_id: currentQuestionId,
-                    answer: selectedValue,
-                    user_id: userIdentifier // Enviando o email
+                    answer: selectedValue
                 })
             });
             
@@ -755,16 +755,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 rankingBody.innerHTML = '<tr><td colspan="4">Nenhum ranking disponível. Jogue para começar!</td></tr>';
             } else {
                 data.forEach((user, index) => {
-                    // Usa display_name (Nome Real) que o backend fornece
-                    const displayName = user.display_name; 
-                    rankingBody.innerHTML += `
-                        <tr>
-                            <td><b>${index + 1}º</b></td>
-                            <td>${displayName}</td>
-                            <td>${user.total_correct}</td>
-                            <td>${user.total_attempted}</td>
-                        </tr>
-                    `;
+                    const row = document.createElement('tr');
+                    const positionCell = document.createElement('td');
+                    const nameCell = document.createElement('td');
+                    const correctCell = document.createElement('td');
+                    const attemptedCell = document.createElement('td');
+
+                    positionCell.textContent = `${index + 1}º`;
+                    nameCell.textContent = user.display_name ?? '';
+                    correctCell.textContent = String(user.total_correct ?? 0);
+                    attemptedCell.textContent = String(user.total_attempted ?? 0);
+
+                    row.append(positionCell, nameCell, correctCell, attemptedCell);
+                    rankingBody.appendChild(row);
                 });
             }
         } catch (error) {

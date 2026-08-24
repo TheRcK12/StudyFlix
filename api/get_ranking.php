@@ -1,32 +1,33 @@
 <?php
-// api/get_ranking.php - CÓDIGO FINAL
+declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
-include 'db_config.php'; 
+require __DIR__ . '/db_config.php';
 
-$db = $pdo ?? null;
-
-if (!$db) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro interno: A conexão com o banco não foi estabelecida.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-try {
-    $sql = "SELECT display_name, total_correct, total_attempted 
-            FROM user_scores 
-            WHERE username NOT LIKE 'guest_%' 
-            ORDER BY total_correct DESC, total_attempted DESC
-            LIMIT 10";
-
-    $stmt = $db->prepare($sql);
-    $stmt->execute();
-    $ranking_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    echo json_encode($ranking_data);
-
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Erro ao executar a query no banco de dados. Detalhe: ' . $e->getMessage()]);
+if (!$pdo) {
+    respond(['error' => 'Banco de dados indisponível.'], 503);
 }
-?>
+
+try {
+    $stmt = $pdo->query(
+        "SELECT display_name, total_correct, total_attempted
+         FROM user_scores
+         WHERE username NOT LIKE 'guest_%'
+         ORDER BY total_correct DESC, total_attempted DESC, display_name ASC
+         LIMIT 10"
+    );
+
+    respond($stmt->fetchAll());
+} catch (Throwable $e) {
+    error_log('[StudyFlix][RANKING] ' . $e->getMessage());
+    respond(['error' => 'Não foi possível carregar o ranking.'], 500);
+}

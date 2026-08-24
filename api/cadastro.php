@@ -1,84 +1,91 @@
 <?php
-// api/cadastro.php - CÓDIGO COMPLETO E FINALIZADO
+declare(strict_types=1);
 
-session_set_cookie_params([
-    'lifetime' => 0,      
-    'path' => '/',        
-    'httponly' => true,   
-    'samesite' => 'Lax'   
-]);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
-session_start();
-header('Content-Type: application/json');
+require __DIR__ . '/session.php';
+studyflix_start_session();
+require __DIR__ . '/db_config.php';
 
-// 🚨 CORREÇÃO CRÍTICA: Se db_config.php estiver na mesma pasta 'api', remova o prefixo 'api/'.
-// Se o db_config.php estiver em outro lugar, ajuste o caminho relativo (ex: '../db_config.php')
-include 'db_config.php'; 
-
-$nome = $_POST['nome'] ?? '';
-$email = $_POST['email'] ?? '';
-$senha_clara = $_POST['senha'] ?? ''; 
-$confirmarSenha = $_POST['confirmarSenha'] ?? ''; // Pega o campo de confirmação
-
-$email = filter_var($email, FILTER_SANITIZE_EMAIL);
-
-// 1. Validação de Campos Vazios
-if (empty($nome) || empty($email) || empty($senha_clara) || empty($confirmarSenha)) {
-    echo json_encode(['success' => false, 'message' => 'Preencha todos os campos.']);
+function respond(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-// 2. Validação de Comprimento Mínimo da Senha
-if (strlen($senha_clara) < 6) {
-    echo json_encode(['success' => false, 'message' => 'A senha deve ter no mínimo 6 caracteres.']);
-    exit;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-// 3. Validação de Confirmação da Senha
-if ($senha_clara !== $confirmarSenha) {
-    echo json_encode(['success' => false, 'message' => 'As senhas não coincidem.']);
-    exit;
+if (!$pdo) {
+    respond(['success' => false, 'message' => 'Banco de dados temporariamente indisponível.'], 503);
 }
 
-$senha_hash = password_hash($senha_clara, PASSWORD_DEFAULT);
+$nome = trim(strip_tags((string) ($_POST['nome'] ?? '')));
+$emailInput = trim((string) ($_POST['email'] ?? ''));
+$senha = (string) ($_POST['senha'] ?? '');
+$confirmarSenha = (string) ($_POST['confirmarSenha'] ?? '');
+
+if ($nome === '' || $emailInput === '' || $senha === '' || $confirmarSenha === '') {
+    respond(['success' => false, 'message' => 'Preencha todos os campos.'], 400);
+}
+
+if (mb_strlen($nome) > 120) {
+    respond(['success' => false, 'message' => 'O nome deve ter no máximo 120 caracteres.'], 400);
+}
+
+$email = filter_var($emailInput, FILTER_VALIDATE_EMAIL);
+if ($email === false) {
+    respond(['success' => false, 'message' => 'Informe um e-mail válido.'], 400);
+}
+$email = strtolower($email);
+
+if (strlen($senha) < 6) {
+    respond(['success' => false, 'message' => 'A senha deve ter no mínimo 6 caracteres.'], 400);
+}
+
+if ($senha !== $confirmarSenha) {
+    respond(['success' => false, 'message' => 'As senhas não coincidem.'], 400);
+}
+
+$senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
 try {
-    $db = $pdo ?? null; 
-    if (!$db) {
-        // Isso deve ser resolvido pelo include correto, mas é uma proteção
-        throw new Exception("Falha na conexão: Variável \$pdo não encontrada (Verifique db_config.php).");
-    }
-    
-    // 4. Verifica se o email já existe
-    $stmt_check = $db->prepare("SELECT email FROM usuarios WHERE email = ?");
-    $stmt_check->execute([$email]);
-    if ($stmt_check->fetch()) {
-        echo json_encode(['success' => false, 'message' => 'Este email já está cadastrado.']);
-        exit;
+    $stmt = $pdo->prepare('SELECT 1 FROM usuarios WHERE email = :email');
+    $stmt->execute([':email' => $email]);
+    if ($stmt->fetchColumn()) {
+        respond(['success' => false, 'message' => 'Este e-mail já está cadastrado.'], 409);
     }
 
-    // 5. Insere o novo usuário
-    $query = "INSERT INTO usuarios (nome, email, senha) VALUES (:nome, :email, :senha)";
-    $stmt = $db->prepare($query);
-    $result = $stmt->execute([
-        ':nome' => $nome, 
-        ':email' => $email, 
-        ':senha' => $senha_hash
+    $stmt = $pdo->prepare(
+        'INSERT INTO usuarios (nome, email, senha) VALUES (:nome, :email, :senha)'
+    );
+    $stmt->execute([
+        ':nome' => $nome,
+        ':email' => $email,
+        ':senha' => $senhaHash,
     ]);
 
-    if ($result) {
-        // SINCRONIZAÇÃO DA SESSÃO após o cadastro
-        $_SESSION['user_email'] = $email;    
-        $_SESSION['user_display_name'] = $nome;
+    session_regenerate_id(true);
+    $_SESSION['user_email'] = $email;
+    $_SESSION['user_display_name'] = $nome;
 
-        echo json_encode(['success' => true, 'message' => 'Cadastro realizado com sucesso!', 'redirect' => 'page.html']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Erro ao cadastrar.']);
+    respond([
+        'success' => true,
+        'message' => 'Cadastro realizado com sucesso.',
+        'redirect' => 'page.html',
+    ], 201);
+} catch (PDOException $e) {
+    // 23505 = unique_violation no PostgreSQL. Evita condição de corrida no cadastro.
+    if ($e->getCode() === '23505') {
+        respond(['success' => false, 'message' => 'Este e-mail já está cadastrado.'], 409);
     }
 
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Erro fatal: ' . $e->getMessage()]);
+    error_log('[StudyFlix][CADASTRO] ' . $e->getMessage());
+    respond(['success' => false, 'message' => 'Não foi possível concluir o cadastro agora.'], 500);
+} catch (Throwable $e) {
+    error_log('[StudyFlix][CADASTRO] ' . $e->getMessage());
+    respond(['success' => false, 'message' => 'Não foi possível concluir o cadastro agora.'], 500);
 }
-?>
