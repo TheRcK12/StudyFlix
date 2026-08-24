@@ -16,3 +16,7 @@ Validações executadas sobre esta versão:
 A conexão real com o PostgreSQL do Railway e o build do container precisam ser confirmados no primeiro deploy, porque dependem do `DATABASE_URL`, da rede privada e do projeto Railway que será criado pelo proprietário do sistema.
 
 O roteiro de conferência pós-deploy está em `README_RAILWAY.md`.
+
+## Correção V2 — Railway 502
+
+O startup foi alterado para que o Apache seja configurado e iniciado independentemente do resultado da migração PostgreSQL. A migração agora roda em segundo plano e uma falha de `DATABASE_URL` não encerra o processo web. O Apache escuta explicitamente em `0.0.0.0:$PORT`.

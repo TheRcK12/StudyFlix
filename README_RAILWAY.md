@@ -8,7 +8,8 @@ Esta pasta contém a conversão do projeto para executar em Railway usando **PHP
 - Apache ajustado em runtime para escutar a variável `PORT` fornecida pelo Railway.
 - Credenciais de banco removidas do código-fonte.
 - Banco configurado por `DATABASE_URL` ou pelas variáveis `PG*`.
-- Migração automática durante a inicialização do container.
+- Migração automática em segundo plano durante a inicialização do container.
+- O Apache inicia mesmo se o PostgreSQL estiver temporariamente indisponível, evitando que uma falha de banco derrube todo o domínio.
 - Tentativas automáticas de conexão enquanto o PostgreSQL ainda estiver iniciando.
 - Criação automática das tabelas `usuarios`, `questions` e `user_scores`.
 - Seed idempotente com questões mínimas para validar o quiz em um banco novo.
@@ -104,7 +105,7 @@ O endpoint retorna HTTP 200 quando o servidor PHP/Apache está disponível.
 
 ## 7. Faça o deploy
 
-Na inicialização o container executa automaticamente:
+Na inicialização, o Apache é configurado imediatamente para `0.0.0.0:$PORT` e a migração é executada em segundo plano:
 
 ```text
 php /opt/studyflix/scripts/migrate.php
@@ -112,10 +113,12 @@ php /opt/studyflix/scripts/migrate.php
 
 O processo:
 
-1. aguarda o PostgreSQL ficar disponível;
-2. cria/valida as tabelas;
-3. insere as questões mínimas de teste;
-4. inicia o Apache somente depois que o banco está pronto.
+1. configura e inicia o Apache na porta fornecida pelo Railway;
+2. em paralelo, aguarda o PostgreSQL ficar disponível;
+3. cria/valida as tabelas;
+4. insere as questões mínimas de teste.
+
+Se o banco estiver sem `DATABASE_URL`, o domínio continua respondendo e `/health.php` indica `database_configured: false`; apenas as funções que dependem do banco ficam indisponíveis até a variável ser corrigida.
 
 # Roteiro de teste em produção
 
@@ -219,3 +222,27 @@ Para os testes de produção, mantenha o serviço com **1 réplica**. As sessõe
 # Segurança importante
 
 O código original continha uma credencial PostgreSQL do Render escrita diretamente nos arquivos. Ela foi removida desta versão. A senha/credencial antiga deve ser rotacionada no provedor antigo, porque segredo colocado em código deve ser tratado como comprometido.
+
+
+# Diagnóstico do erro `Application failed to respond`
+
+Esta versão V2 foi endurecida especificamente para evitar o 502 do Railway causado por startup bloqueado.
+
+Após o deploy, abra primeiro:
+
+```text
+/health.php
+```
+
+Se ele responder, o Apache e a porta pública estão corretos. O JSON também mostra se o banco foi configurado, sem expor credenciais.
+
+Nos Deploy Logs deve aparecer algo semelhante a:
+
+```text
+[StudyFlix] Apache configurado em 0.0.0.0:8080
+Syntax OK
+```
+
+O número pode ser diferente de 8080, pois é o valor recebido em `PORT`.
+
+Se o domínio ainda mostrar `Application failed to respond`, verifique em **Settings > Networking** se existe um `Target Port` manual. Se existir, ele precisa apontar para a mesma porta mostrada no log acima; preferencialmente remova uma configuração manual incorreta e deixe o Railway usar a porta do serviço.
